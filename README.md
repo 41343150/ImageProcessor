@@ -1,1 +1,1 @@
-# ImageProcessor
+# Qt_ImageProcessor
