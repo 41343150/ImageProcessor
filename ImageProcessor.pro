@@ -10,10 +10,10 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    ip.cpp
+    imageprocessor.cpp
 
 HEADERS += \
-    ip.h
+    imageprocessor.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
