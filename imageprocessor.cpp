@@ -1,4 +1,5 @@
 #include "imageprocessor.h"
+#include "imagetransform.h"
 #include <QHBoxLayout>
 #include <QMenuBar>
 #include <QFileDialog>
@@ -12,6 +13,7 @@ ImageProcessor::ImageProcessor(QWidget *parent)
     QHBoxLayout *mainLayout = new QHBoxLayout(central);
     imgWin = new QLabel();
     QPixmap *initPixmap = new QPixmap(300,200);
+    gWin = new ImageTransform();
     initPixmap->fill(QColor(255,255,255));
     imgWin->resize(300,200);
     imgWin->setScaledContents(true);
@@ -21,6 +23,19 @@ ImageProcessor::ImageProcessor(QWidget *parent)
     createActions();
     createMenus();
     createToolBars();
+
+    statusLabel = new QLabel;
+    statusLabel->setText(tr("指標位置:"));
+    statusLabel->setFixedWidth(100);
+    MousePosLabel = new QLabel;
+    MousePosLabel->setText(tr(" "));
+    MousePosLabel->setFixedWidth(100);
+    statusBar()->addPermanentWidget(statusLabel);
+    statusBar()->addPermanentWidget(MousePosLabel);
+    setMouseTracking(true);
+    imgWin->setMouseTracking(true);
+    central->setMouseTracking(true);
+
 }
 
 ImageProcessor::~ImageProcessor() {}
@@ -34,18 +49,22 @@ void ImageProcessor::createActions()
 
     exitAction = new QAction(tr("結束&Q"),this);
     exitAction->setShortcut(tr("Ctrl+Q"));
-    exitAction->setStatusTip(tr("退出"));
+    exitAction->setStatusTip(tr("退出程式"));
     connect(exitAction,SIGNAL(triggered(bool)),this,SLOT(close()));
 
-    big = new QAction(tr("影像放大"),this);
-    big->setShortcut(tr("Ctrl+b"));
-    big ->setStatusTip(tr("影像放大"));
+    big = new QAction(tr("放大"),this);
+    exitAction->setStatusTip(tr("放大"));
     connect(big,SIGNAL(triggered(bool)),this,SLOT(bigFile()));
 
-    small = new QAction(tr("影像縮小"),this);
-    small->setShortcut(tr("Ctrl+s"));
-    small->setStatusTip(tr("影像縮小"));
+    small = new QAction(tr("縮小"),this);
+    exitAction->setStatusTip(tr("縮小"));
     connect(small,SIGNAL(triggered(bool)),this,SLOT(smallFile()));
+
+    geometryAction = new QAction(tr("幾何轉換"),this);
+    geometryAction->setShortcut(tr("Ctrl+G"));
+    geometryAction->setStatusTip(tr("影像幾何轉換"));
+    connect(geometryAction,SIGNAL(triggered(bool)),this,SLOT(showGeometryTransform()));
+    connect(exitAction,SIGNAL(triggered(bool)),gWin,SLOT(close()));
 }
 
 void ImageProcessor::createMenus()
@@ -57,6 +76,8 @@ void ImageProcessor::createMenus()
     fileMenu = menuBar()->addMenu(tr("工具&T"));
     fileMenu->addAction(big);
     fileMenu->addAction(small);
+
+    fileMenu->addAction(geometryAction);
 }
 
 void ImageProcessor::createToolBars()
@@ -67,6 +88,8 @@ void ImageProcessor::createToolBars()
     fileTool = addToolBar("tool");
     fileTool->addAction(big);
     fileTool->addAction(small);
+
+    fileTool->addAction(geometryAction);
 }
 
 void ImageProcessor::loadFile(QString filename)
@@ -107,4 +130,38 @@ void ImageProcessor::smallFile()
         newIPWin->show();
         newIPWin->loadFile(filename);
     }
+}
+
+void ImageProcessor::showGeometryTransform(){
+    if(!img.isNull())
+        gWin->srcImg=img;
+    gWin->inWin->setPixmap(QPixmap::fromImage(gWin->srcImg));
+    gWin->show();
+}
+
+void ImageProcessor::mouseDoubleClickEvent(QMouseEvent *event){
+    QString str = "(" + QString::number(event->x()) +", " + QString::number(event->y()) + ")";
+    statusBar()->showMessage(tr("雙擊:")+str,1000);
+}
+void ImageProcessor::mouseMoveEvent(QMouseEvent *event){
+    int gray = qGray(img.pixel(event->x(),event->y()));
+    QString str = "(" + QString::number(event->x()) +", " + QString::number(event->y()) + ")" + " = "+QString::number(gray);
+
+    MousePosLabel->setText(str);
+}
+void ImageProcessor::mousePressEvent(QMouseEvent *event){
+    QString str = "(" + QString::number(event->x()) +", " + QString::number(event->y()) + ")";
+    if(event->button()==Qt::LeftButton){
+        statusBar()->showMessage(tr("左鍵:")+str,1000);
+    }
+    else if(event->button()==Qt::RightButton){
+        statusBar()->showMessage(tr("右鍵:")+str,1000);
+    }
+    else if(event->button()==Qt::MiddleButton){
+        statusBar()->showMessage(tr("中鍵:")+str,1000);
+    }
+}
+void ImageProcessor::mouseReleaseEvent(QMouseEvent *event){
+    QString str = "(" + QString::number(event->x()) +", " + QString::number(event->y()) + ")";
+    statusBar()->showMessage(tr("釋放:")+str,1000);
 }

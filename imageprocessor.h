@@ -7,6 +7,10 @@
 #include <QToolBar>
 #include <QImage>
 #include <QLabel>
+#include <QMouseEvent>
+#include <QStatusBar>
+#include "imagetransform.h"
+#include "mouseevent.h"
 
 class ImageProcessor : public QMainWindow
 {
@@ -25,8 +29,11 @@ private slots:
     void showOpenFile();
     void bigFile();
     void smallFile();
+    void showGeometryTransform();
 
 private:
+    ImageTransform *gWin;
+    MouseEvent     *mouse;
     QWidget     *central;
     QMenu       *fileMenu;
     QToolBar    *fileTool;
@@ -35,8 +42,18 @@ private:
     QLabel      *imgWin;
     QAction     *openFileAction;
     QAction     *exitAction;
+    QAction     *geometryAction;
 
     QAction     *big;
     QAction     *small;
+
+    QLabel  *statusLabel;
+    QLabel  *MousePosLabel;
+
+protected:
+    void mouseDoubleClickEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
 };
-#endif
+#endif // IMAGEPROCESSOR_H
